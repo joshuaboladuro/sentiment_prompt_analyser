@@ -1,7 +1,10 @@
-"""Sentiment analyser backed by a pre-trained transformer model.
+"""Sentiment analyser backed by a pre-trained transformer.
 
-Wraps a Hugging Face pipeline and returns a structured result with a
-3-class label (positive, neutral, negative) and a confidence score.
+Wraps a Hugging Face pipeline and returns a structured ``SentimentResult``
+with a 3-class label (positive, neutral, negative) and a confidence score.
+The default model is ``cardiffnlp/twitter-roberta-base-sentiment-latest``,
+chosen because it was trained on ~124M tweets and returns three classes
+rather than the binary output of most default sentiment pipelines.
 """
 from __future__ import annotations
 
@@ -11,10 +14,7 @@ from typing import Literal
 from transformers import pipeline
 
 Sentiment = Literal["positive", "negative", "neutral"]
-
-
 DEFAULT_MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
-
 
 _LABEL_MAP: dict[str, Sentiment] = {
     "LABEL_0": "negative",
@@ -28,8 +28,6 @@ _LABEL_MAP: dict[str, Sentiment] = {
 
 @dataclass(frozen=True)
 class SentimentResult:
-    """The outcome of analysing one piece of text."""
-
     text: str
     label: Sentiment
     score: float
@@ -39,8 +37,6 @@ class SentimentResult:
 
 
 class SentimentAnalyser:
-    """Loads the model once and exposes a small analyse / analyse_batch API."""
-
     def __init__(self, model_name: str = DEFAULT_MODEL) -> None:
         self._model_name = model_name
         self._pipe = pipeline("sentiment-analysis", model=model_name, top_k=None)
@@ -53,9 +49,9 @@ class SentimentAnalyser:
         if not isinstance(text, str) or not text.strip():
             raise ValueError("text must be a non-empty string")
 
-        raw = self._pipe(text)[0]  
+        raw = self._pipe(text)[0]
         top = max(raw, key=lambda r: r["score"])
-        label = _LABEL_MAP.get(top["label"], top["label"].lower()) 
+        label = _LABEL_MAP.get(top["label"], top["label"].lower())
         return SentimentResult(text=text, label=label, score=float(top["score"]))
 
     def analyse_batch(self, texts: list[str]) -> list[SentimentResult]:

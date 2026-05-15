@@ -2,60 +2,57 @@
 
 A web app that takes any sentence you type and predicts whether the sentiment is **positive**, **negative** or **neutral**, with a confidence score. Built on a pretrained model trained on hundreds of millions of social media posts, so it handles conversational and informal text well.
 
-## The web app
+A FastAPI backend serves the model and a Next.js frontend (TypeScript + Tailwind) renders the result as a colour-coded card with an animated SVG face, a confidence bar and smooth motion transitions.
 
-Type a sentence, hit Analyse, and you get a colour-coded card with an emoji, a confidence bar and a short sound effect that matches the mood.
-
-Run it on Google Colab (no install on your machine):
+## Architecture
 
 ```
-!git clone https://github.com/joshuaboladuro/sentiment_prompt_analyser.git
-%cd sentiment_prompt_analyser
-!pip install -r requirements.txt
-!python app.py
+backend/    Python FastAPI server. Loads the model once, exposes /analyse.
+frontend/   Next.js + TypeScript + Tailwind. Talks to the backend over HTTP.
 ```
 
-Gradio prints a public `*.gradio.live` link you can open in any browser.
+## Run locally
 
-Or run locally:
+You'll need **Python 3.10+** and **Node.js 18+** installed.
+
+### 1. Start the backend
 
 ```bash
-git clone https://github.com/joshuaboladuro/sentiment_prompt_analyser.git
-cd sentiment_prompt_analyser
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-python app.py
+uvicorn api:app --reload --port 8000
 ```
 
-## Use from Python
+First run downloads the model (~500 MB), then runs on http://localhost:8000.
 
-```python
-from sentiment import SentimentAnalyser
+### 2. Start the frontend
 
-analyser = SentimentAnalyser()
-result = analyser.analyse("Honestly, the food was incredible.")
-
-print(result.label)   # positive
-print(result.score)   # 0.987
-```
-
-## Use from the command line
+In a second terminal:
 
 ```bash
-python cli.py "Honestly, the food was incredible."
-# Sentiment: positive (confidence: 0.987)
-
-python cli.py --json "I am not impressed."
-# {"text": "I am not impressed.", "label": "negative", "score": 0.842}
-
-echo "Mixed feelings about this one." | python cli.py
+cd frontend
+npm install
+npm run dev
 ```
 
-## Tests
+Open http://localhost:3000 in your browser.
 
-```bash
-pip install pytest
-pytest -q
-```
+## Deploy
+
+### Backend on Hugging Face Spaces
+
+1. Create a new Space at https://huggingface.co/new-space, choose the **Docker** SDK.
+2. Add a Dockerfile that copies backend/ and runs uvicorn api:app --host 0.0.0.0 --port 7860.
+3. Push. You get a free permanent URL.
+
+### Frontend on Vercel
+
+1. Go to https://vercel.com/new and import this repo.
+2. Set the **root directory** to frontend.
+3. Add an env variable: NEXT_PUBLIC_API_URL pointing at your Space URL.
+4. Deploy.
 
 ## Licence
 

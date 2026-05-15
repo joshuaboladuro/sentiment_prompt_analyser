@@ -12,13 +12,10 @@ from transformers import pipeline
 
 Sentiment = Literal["positive", "negative", "neutral"]
 
-# This model is trained on roughly 124M tweets so it handles informal,
-# conversational text well, and it returns three classes which is more
-# useful than the default binary sentiment pipelines.
+
 DEFAULT_MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 
-# The model returns LABEL_0 / LABEL_1 / LABEL_2 by default, so we map
-# them to readable names.
+
 _LABEL_MAP: dict[str, Sentiment] = {
     "LABEL_0": "negative",
     "LABEL_1": "neutral",
@@ -46,9 +43,6 @@ class SentimentAnalyser:
 
     def __init__(self, model_name: str = DEFAULT_MODEL) -> None:
         self._model_name = model_name
-        # top_k=None makes the pipeline return all label scores so we can
-        # always pick the top one ourselves. Setting it now avoids a
-        # FutureWarning from newer versions of transformers.
         self._pipe = pipeline("sentiment-analysis", model=model_name, top_k=None)
 
     @property
@@ -59,9 +53,9 @@ class SentimentAnalyser:
         if not isinstance(text, str) or not text.strip():
             raise ValueError("text must be a non-empty string")
 
-        raw = self._pipe(text)[0]  # list of {label, score} dicts
+        raw = self._pipe(text)[0]  
         top = max(raw, key=lambda r: r["score"])
-        label = _LABEL_MAP.get(top["label"], top["label"].lower())  # type: ignore[arg-type]
+        label = _LABEL_MAP.get(top["label"], top["label"].lower()) 
         return SentimentResult(text=text, label=label, score=float(top["score"]))
 
     def analyse_batch(self, texts: list[str]) -> list[SentimentResult]:

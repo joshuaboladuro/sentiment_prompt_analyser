@@ -2,7 +2,7 @@
 
 Examples:
     python cli.py "Honestly, the food was incredible."
-    python cli.py --json "I'm not impressed."
+    python cli.py --json "I am not impressed."
     echo "Mixed feelings about this one." | python cli.py
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "text",
         nargs="?",
-        help="The text to analyse. If omitted, the tool reads from stdin.",
+        help="Text to analyse. If omitted, the tool reads from stdin.",
     )
     parser.add_argument(
         "--json",

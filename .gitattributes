@@ -1,0 +1,2 @@
+# Mark the Next.js/React frontend as vendored so GitHub treats this as a Python project
+frontend/** linguist-vendored=true

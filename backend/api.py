@@ -1,8 +1,9 @@
 """FastAPI server that exposes the sentiment analyser over HTTP.
 
 Endpoints:
-    GET  /          health check
-    POST /analyse   accepts {"text": str}, returns {"label", "score", "text"}
+    GET  /            health check
+    GET  /model-info  model name and label list
+    POST /analyse     accepts {"text": str}, returns {"label", "score", "text"}
 
 Run locally:
     uvicorn api:app --reload --port 8000
@@ -13,7 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from sentiment import SentimentAnalyser, SentimentResult
+from sentiment import DEFAULT_MODEL, SentimentAnalyser, SentimentResult
 
 app = FastAPI(title="Sentiment Prompt Analyser API", version="1.0.0")
 
@@ -41,6 +42,14 @@ class AnalyseResponse(BaseModel):
 @app.get("/")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "sentiment-prompt-analyser"}
+
+
+@app.get("/model-info")
+def model_info() -> dict[str, object]:
+    return {
+        "model": DEFAULT_MODEL,
+        "labels": ["positive", "neutral", "negative"],
+    }
 
 
 @app.post("/analyse", response_model=AnalyseResponse)
